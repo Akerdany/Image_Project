@@ -9,28 +9,28 @@ letters = dict({"[0.]":"0", "[1.]":"1","[2.]":"2", "[3.]":"3","[4.]":"4", "[5.]"
                  ,"[30.]":"U", "[31.]":"V","[32.]":"W", "[33.]":"X","[34.]":"Y", "[35.]":"Z"})
 img = cv2.imread('result.png')
 gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-img3=cv2.imread('shuffledWrong.png')
+img3=cv2.imread('4L.png')
 gray3 = cv2.cvtColor(img3,cv2.COLOR_BGR2GRAY)
-
+rows, cols=gray3.shape
 # Now we split the image to 5000 cells, each 20x20 size
 cells = [np.hsplit(row,100) for row in np.vsplit(gray,180)]
-testCells = [np.hsplit(row,36) for row in np.vsplit(gray3,1)]
+testCells = [np.hsplit(row,(cols/20)) for row in np.vsplit(gray3,(rows/20))]
 
 x = np.array(cells)
 y = np.array(testCells)
 
 train = x[:,:50].reshape(-1,400).astype(np.float32)
-# test= x[:,50:100].reshape(-1,400).astype(np.float32) ## If we gonna use the half of the data as test
-test = y.reshape(-1,400).astype(np.float32) ## if we gonna use sample of letters
+test= x[:,50:100].reshape(-1,400).astype(np.float32)
+testCase = y.reshape(-1,400).astype(np.float32)
 
 k = np.arange(36)
 train_labels = np.repeat(k,250)[:,np.newaxis]
-# test_labels = train_labels.copy() ## If we gonna use the half of the data as test
-test_labels=np.repeat(k,36) ## if we gonna use sample of letters
+test_labels = train_labels.copy()
+
 
 knn = cv2.ml.KNearest_create()
 knn.train(train,cv2.ml.ROW_SAMPLE,train_labels)
-ret,result,neighbours,dist = knn.findNearest(test,k=5)
+ret,result,neighbours,dist = knn.findNearest(testCase,k=5)
 
 numStr=""
 for i in result:
@@ -41,7 +41,7 @@ cv2.imshow("",img3)
 cv2.waitKey(0)
 
 
+
 # matches = result==test_labels
 # correct = np.count_nonzero(matches)
-# accuracy = correct*100.0/result.size
-# print (accuracy)
+# accuracy = (correct/result.size)*100
